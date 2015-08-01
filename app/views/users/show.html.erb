@@ -1,0 +1,104 @@
+<p id="notice"><%= notice %></p>
+
+
+<% title "Users" %>
+<p>
+  <strong>Address:</strong>
+  <%= @user.name %>
+</p>
+<p>
+  <strong>Address:</strong>
+  <%= @user.address %>
+</p>
+<p>
+  <strong>Latitude:</strong>
+  <%= @user.latitude %>
+</p>
+<p>
+  <strong>Longitude:</strong>
+  <%= @user.longitude %>
+</p>
+
+
+<h3>Nearby locations</h3>
+
+
+
+  <div id="map" style="width: 500px; height: 400px;"></div>
+
+  <script type="text/javascript">
+  var locations = [];
+  var lan , lant = ''; 
+  <% for user in @user.nearbys(10) %>
+    var add = [];
+    add.push("<%=  user.address %>");
+    add.push(<%=  user.latitude %>);
+    add.push(<%=  user.longitude %>);
+    add.push("<%=  user.id %>");
+    locations.push(add);
+  <% end %>
+  <% unless @user.nearbys(10).present? %>
+     locations = [@user.address ,@user.latitude,@user.longitude]
+  <% end %>   
+  console.log(locations);
+
+    var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 9,
+      center: new google.maps.LatLng(<%= @user.latitude %>,<%= @user.longitude %>),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    var circle = new google.maps.Circle({
+            center: new google.maps.LatLng(<%= @user.latitude %>,<%= @user.longitude %>),
+            radius: 20 * 1609.344,
+            fillColor: "#ff69b4",
+            fillOpacity: 0.5,
+            strokeOpacity: 0.0,
+            strokeWeight: 0,
+            map: map
+        });
+
+    var infowindow = new google.maps.InfoWindow();
+
+    var marker, i;
+
+    for (i = 0; i < locations.length; i++) {  
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+        map: map
+      });
+
+      google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        return function() {
+          infowindow.setContent(locations[i][0]);
+          infowindow.open(map, marker);
+        }
+      })(marker, i));
+    }
+  </script>
+
+<ul>
+<% for user in @user.nearbys(10) %>
+  <li>
+<span>
+	<%=  user.name %> 
+</span>
+<span>
+	 <%= link_to user.address, user %> (<%= user.distance.round(2)%> miles)
+</span>
+</li>
+ 
+
+<% end %>
+
+</ul>
+
+
+
+<p>
+  <%= link_to "Edit", edit_user_path(@user) %> |
+  <%= link_to "Destroy", @user, :confirm => 'Are you sure?', :method => :delete %> |
+  <%= link_to "View All", users_path %>
+</p>
+
+
