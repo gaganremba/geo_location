@@ -28,69 +28,59 @@
 
   <script type="text/javascript">
   var locations = [];
-  var lan , lant = ''; 
-  <% for user in @user.nearbys(10) %>
-    var add = [];
-    add.push("<%=  user.address %>");
-    add.push(<%=  user.latitude %>);
-    add.push(<%=  user.longitude %>);
-    add.push("<%=  user.id %>");
-    locations.push(add);
+  <% @users =  @user.nearbys(10) %>
+  <% if @users.present? %>
+    <% for user in @users %>
+      locations.push(['<%= user.address %>' ,<%= user.latitude%>,<%= user.longitude%>]);
+    <% end %>
+  <% else %>
+    locations.push(['<%=  @user.address %>' ,<%= @user.latitude%>,<%= @user.longitude%>]);
   <% end %>
-  <% unless @user.nearbys(10).present? %>
-     locations = [@user.address ,@user.latitude,@user.longitude]
-  <% end %>   
-  console.log(locations);
+ 
 
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 9,
-      center: new google.maps.LatLng(<%= @user.latitude %>,<%= @user.longitude %>),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    });
-
+                    zoom: 9,
+                    center: new google.maps.LatLng(<%= @user.latitude %>,<%= @user.longitude %>),
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                  });
     var circle = new google.maps.Circle({
-            center: new google.maps.LatLng(<%= @user.latitude %>,<%= @user.longitude %>),
-            radius: 20 * 1609.344,
-            fillColor: "#ff69b4",
-            fillOpacity: 0.5,
-            strokeOpacity: 0.0,
-            strokeWeight: 0,
-            map: map
-        });
-
+                          center: new google.maps.LatLng(<%= @user.latitude %>,<%= @user.longitude %>),
+                          radius: 20 * 1609.344,
+                          fillColor: "#ff69b4",
+                          fillOpacity: 0.5,
+                          strokeOpacity: 0.0,
+                          strokeWeight: 0,
+                          map: map
+                      });
     var infowindow = new google.maps.InfoWindow();
-
     var marker, i;
-
-    for (i = 0; i < locations.length; i++) {  
+    for (i = 0; i < (locations.length); i++) {  
       marker = new google.maps.Marker({
         position: new google.maps.LatLng(locations[i][1], locations[i][2]),
         map: map
       });
 
-      google.maps.event.addListener(marker, 'click', (function(marker, i) {
+      google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
         return function() {
           infowindow.setContent(locations[i][0]);
           infowindow.open(map, marker);
         }
       })(marker, i));
+
     }
   </script>
 
 <ul>
-<% for user in @user.nearbys(10) %>
-  <li>
-<span>
-	<%=  user.name %> 
-</span>
-<span>
-	 <%= link_to user.address, user %> (<%= user.distance.round(2)%> miles)
-</span>
-</li>
- 
-
-<% end %>
-
+  <% for user in @users %>
+    <li>
+      <span>
+      	<%=  user.name %> 
+      </span>
+      <span>
+      	 <%= link_to user.address, user %> (<%= user.distance.round(2)%> miles)
+      </span>
+    </li>
+  <% end %>
 </ul>
 
 
